@@ -1,8 +1,8 @@
-import commonjs from 'rollup-plugin-commonjs';
-import resolve from 'rollup-plugin-node-resolve';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 import replace from '@rollup/plugin-replace';
-import serve from 'rollup-plugin-serve';
-import typescript from 'rollup-plugin-typescript2';
+import terser from '@rollup/plugin-terser';
+import typescript from '@rollup/plugin-typescript';
 
 export default {
 
@@ -14,21 +14,22 @@ export default {
     //  Where the build file is to be generated.
     //  Most games being built for distribution can use iife as the module type.
     //  You can also use 'umd' if you need to ingest your game into another system.
-    //  The 'intro' property can be removed if using Phaser 3.21 or above. Keep it for earlier versions.
+    //  If using Phaser 3.21 or **below**, add: `intro: 'var global = window;'` to the output object.
     output: {
         file: './dist/game.js',
         name: 'MyGame',
         format: 'iife',
-        sourcemap: true,
-        intro: 'var global = window;'
+        sourcemap: false
     },
 
     plugins: [
 
         //  Toggle the booleans here to enable / disable Phaser 3 features:
         replace({
+            preventAssignment: true,
             'typeof CANVAS_RENDERER': JSON.stringify(true),
             'typeof WEBGL_RENDERER': JSON.stringify(true),
+            'typeof WEBGL_DEBUG': JSON.stringify(false),
             'typeof EXPERIMENTAL': JSON.stringify(true),
             'typeof PLUGIN_CAMERA3D': JSON.stringify(false),
             'typeof PLUGIN_FBINSTANT': JSON.stringify(false),
@@ -36,7 +37,7 @@ export default {
         }),
 
         //  Parse our .ts source files
-        resolve({
+        nodeResolve({
             extensions: [ '.ts', '.tsx' ]
         }),
 
@@ -47,25 +48,18 @@ export default {
                 'node_modules/phaser/**'
             ],
             exclude: [ 
-                'node_modules/phaser/src/polyfills/requestAnimationFrame.js'
+                'node_modules/phaser/src/polyfills/requestAnimationFrame.js',
+                'node_modules/phaser/src/phaser-esm.js'
             ],
-            sourceMap: true,
+            sourceMap: false,
             ignoreGlobal: true
         }),
 
-        //  See https://www.npmjs.com/package/rollup-plugin-typescript2 for config options
+        //  See https://github.com/rollup/plugins/tree/master/packages/typescript for config options
         typescript(),
 
-        //  See https://www.npmjs.com/package/rollup-plugin-serve for config options
-        serve({
-            open: true,
-            contentBase: 'dist',
-            host: 'localhost',
-            port: 10001,
-            headers: {
-                'Access-Control-Allow-Origin': '*'
-            }
-        })
+        //  See https://github.com/rollup/plugins/tree/master/packages/terser for config options
+        terser()
 
     ]
 };
