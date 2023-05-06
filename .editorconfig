@@ -1,0 +1,10 @@
+[*]
+end_of_line = lf
+charset = utf-8
+
+[*.{html,css,js,ts,json}]
+indent_size = 2
+indent_style = space
+
+[*.{yaml,yml}]
+indent_size = 4
